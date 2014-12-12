@@ -1,4 +1,6 @@
-from __future__ import print_function, absolute_import, division, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals,
+)
 
 from ..libs import UITextField, UITextBorderStyleRoundedRect
 from .base import Widget
@@ -12,7 +14,7 @@ class TextInput(Widget):
         self.startup()
 
         self.value = initial
-        # self.readonly = readonly
+        self.readonly = readonly
 
     def startup(self):
         self._impl = UITextField.new()

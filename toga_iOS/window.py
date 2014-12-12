@@ -1,6 +1,8 @@
-from __future__ import print_function, absolute_import, division, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals,
+)
 
-from .libs import *
+from .libs import UIScreen, UIWindow
 
 
 class Window(object):
@@ -11,7 +13,9 @@ class Window(object):
         self.startup()
 
     def startup(self):
-        self._impl = UIWindow.alloc().initWithFrame_(UIScreen.mainScreen().bounds)
+        frame = UIScreen.mainScreen().bounds
+        self._size = (frame.size.width, frame.size.height,)
+        self._impl = UIWindow.alloc().initWithFrame_(frame)
 
     @property
     def app(self):
@@ -21,7 +25,6 @@ class Window(object):
     def app(self, app):
         if self._app:
             raise Exception("Window is already associated with an App")
-
         self._app = app
 
     @property
@@ -34,12 +37,13 @@ class Window(object):
         self._content.window = self
         self._content.app = self.app
 
-        # We now know the widget impl exists; add it.
-        self._impl.addSubview_(widget._impl)
-
+        # We now know the widget impl exists; add it. Top-level widgets are
+        # always handled by a UIViewController, so we just use that.
         self._impl.rootViewController = self._content._controller
 
     def show(self):
         self._impl.makeKeyAndVisible()
 
-        # self._impl.visualizeConstraints_(self._impl.contentView().constraints())
+    @property
+    def size(self):
+        return self._size

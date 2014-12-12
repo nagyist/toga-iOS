@@ -1,30 +1,18 @@
-from __future__ import print_function, absolute_import, division, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals,
+)
+from ctypes import cdll, c_bool, util
 
-from ctypes import *
-from ctypes import util
+from rubicon.objc import ObjCClass, NSPoint, NSRect
 
-
-from rubicon.objc import *
-
-######################################################################
-
-# FOUNDATION
 
 foundation = cdll.LoadLibrary(util.find_library('Foundation'))
-
 foundation.NSMouseInRect.restype = c_bool
 foundation.NSMouseInRect.argtypes = [NSPoint, NSRect, c_bool]
 
-
-# NSArray.h
-
+NSArray = ObjCClass('NSArray')
+NSData = ObjCClass('NSData')
 NSMutableArray = ObjCClass('NSMutableArray')
-
-# NSURL.h
-
+NSObject = ObjCClass('NSObject')
 NSURL = ObjCClass('NSURL')
-
-# NSURLRequest.h
-
 NSURLRequest = ObjCClass('NSURLRequest')
-

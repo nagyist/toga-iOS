@@ -1,6 +1,8 @@
-from __future__ import print_function, absolute_import, division, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals,
+)
 
-# /System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreGraphics.framework/Headers/CGImage.h
+# CGImage.h
 kCGImageAlphaNone = 0
 kCGImageAlphaPremultipliedLast = 1
 kCGImageAlphaPremultipliedFirst = 2

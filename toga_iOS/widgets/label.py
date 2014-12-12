@@ -1,8 +1,11 @@
-from __future__ import print_function, absolute_import, division, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals,
+)
+
+from toga.constants import LEFT_ALIGNED
 
 from ..libs import UILabel, NSTextAlignment, NSLineBreakByWordWrapping
 from .base import Widget
-from toga.constants import *
 
 
 class Label(Widget):
@@ -16,9 +19,9 @@ class Label(Widget):
 
     def startup(self):
         self._impl = UILabel.new()
-
+        self._impl.lineBreakMode = NSLineBreakByWordWrapping
+        self._impl.numberOfLines = 99999    # Always allow multi-lin labels.
         self._impl.setTranslatesAutoresizingMaskIntoConstraints_(False)
-        self._impl.setLineBreakMode_(NSLineBreakByWordWrapping)
 
     @property
     def alignment(self):

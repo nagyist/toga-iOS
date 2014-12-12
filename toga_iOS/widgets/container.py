@@ -1,31 +1,46 @@
-from __future__ import print_function, absolute_import, division, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals,
+)
 
+from rubicon.objc import objc_method
 from toga.constraint import Attribute, Constraint
 
-from ..libs import *
+from ..libs import uikit
 from .base import Widget
+
+
+class ContainerImplHelper(uikit.UIViewController):
+
+    @objc_method('v')
+    def viewDidLayoutSubviews(self):
+        # HACK: If this is the content view of a scroll view, update the
+        # scroll view's content size to fit.
+        superview = self.view.superview()
+        if superview.__dict__['objc_class'] is uikit.UIScrollView:
+            superview.contentSize = self.view.frame().size
+
 
 class Container(Widget):
 
     _IDENTIFIER = {
-        None: NSLayoutAttributeNotAnAttribute,
-        Attribute.LEFT: NSLayoutAttributeLeft,
-        Attribute.RIGHT: NSLayoutAttributeRight,
-        Attribute.TOP: NSLayoutAttributeTop,
-        Attribute.BOTTOM: NSLayoutAttributeBottom,
-        Attribute.LEADING: NSLayoutAttributeLeading,
-        Attribute.TRAILING: NSLayoutAttributeTrailing,
-        Attribute.WIDTH: NSLayoutAttributeWidth,
-        Attribute.HEIGHT: NSLayoutAttributeHeight,
-        Attribute.CENTER_X: NSLayoutAttributeCenterX,
-        Attribute.CENTER_Y: NSLayoutAttributeCenterY,
-        # Attribute.BASELINE: NSLayoutAttributeBaseline,
+        None: uikit.NSLayoutAttributeNotAnAttribute,
+        Attribute.LEFT: uikit.NSLayoutAttributeLeft,
+        Attribute.RIGHT: uikit.NSLayoutAttributeRight,
+        Attribute.TOP: uikit.NSLayoutAttributeTop,
+        Attribute.BOTTOM: uikit.NSLayoutAttributeBottom,
+        Attribute.LEADING: uikit.NSLayoutAttributeLeading,
+        Attribute.TRAILING: uikit.NSLayoutAttributeTrailing,
+        Attribute.WIDTH: uikit.NSLayoutAttributeWidth,
+        Attribute.HEIGHT: uikit.NSLayoutAttributeHeight,
+        Attribute.CENTER_X: uikit.NSLayoutAttributeCenterX,
+        Attribute.CENTER_Y: uikit.NSLayoutAttributeCenterY,
+        # Attribute.BASELINE: uikit.NSLayoutAttributeBaseline,
     }
 
     _RELATION = {
-        Constraint.LTE: NSLayoutRelationLessThanOrEqual,
-        Constraint.EQUAL: NSLayoutRelationEqual,
-        Constraint.GTE: NSLayoutRelationGreaterThanOrEqual,
+        Constraint.LTE: uikit.NSLayoutRelationLessThanOrEqual,
+        Constraint.EQUAL: uikit.NSLayoutRelationEqual,
+        Constraint.GTE: uikit.NSLayoutRelationGreaterThanOrEqual,
     }
 
     def __init__(self):
@@ -36,9 +51,13 @@ class Container(Widget):
         self.startup()
 
     def startup(self):
-        self._controller = UIViewController.alloc().init()
-        self._impl = UIView.alloc().initWithFrame_(UIScreen.mainScreen().bounds)
+        frame = uikit.UIScreen.mainScreen().applicationFrame
+        self._controller = ContainerImplHelper.alloc().init()
+        self._impl = uikit.UIView.alloc().initWithFrame_(frame)
 
+        # http://stackoverflow.com/questions/17745571
+        self._controller.edgesForExtendedLayout = uikit.UIRectEdgeNone
+        self._impl.setTranslatesAutoresizingMaskIntoConstraints_(False)
         self._controller.view = self._impl
 
     def add(self, widget):
@@ -58,34 +77,42 @@ class Container(Widget):
         for child in self.children:
             child.window = window
 
-    def constrain(self, constraint):
+    def constrain(self, *constraints):
         "Add the given constraint to the widget."
-        if constraint in self.constraints:
-            return
 
-        widget = constraint.attr.widget._impl
-        identifier = constraint.attr.identifier
+        for constraint in constraints:
+            if constraint in self.constraints:
+                continue
 
-        if constraint.related_attr:
-            related_widget = constraint.related_attr.widget._impl
-            related_identifier = constraint.related_attr.identifier
+            widget = constraint.attr.widget._impl
+            identifier = constraint.attr.identifier
 
-            multiplier = constraint.related_attr.multiplier / constraint.attr.multiplier
-            constant = (constraint.related_attr.constant - constraint.attr.constant) / constraint.attr.multiplier
+            if constraint.related_attr:
+                related_widget = constraint.related_attr.widget._impl
+                related_identifier = constraint.related_attr.identifier
 
-        else:
-            related_widget = None
-            related_identifier = None
+                multiplier = (
+                    constraint.related_attr.multiplier
+                    / constraint.attr.multiplier
+                )
+                constant = (
+                    (constraint.related_attr.constant - constraint.attr.constant)
+                    / constraint.attr.multiplier
+                )
 
-            multiplier = constraint.attr.multiplier
-            constant = constraint.attr.constant
+            else:
+                related_widget = None
+                related_identifier = None
 
-        constraint._impl = NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant_(
-            widget, self._IDENTIFIER[identifier],
-            self._RELATION[constraint.relation],
-            related_widget, self._IDENTIFIER[related_identifier],
-            multiplier, constant,
-        )
+                multiplier = constraint.attr.multiplier
+                constant = constraint.attr.constant
 
-        self._impl.addConstraint_(constraint._impl)
-        self.constraints[constraint] = constraint._impl
+            constraint._impl = uikit.NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant_(
+                widget, self._IDENTIFIER[identifier],
+                self._RELATION[constraint.relation],
+                related_widget, self._IDENTIFIER[related_identifier],
+                multiplier, constant,
+            )
+
+            self._impl.addConstraint_(constraint._impl)
+            self.constraints[constraint] = constraint._impl
