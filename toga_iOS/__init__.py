@@ -22,7 +22,7 @@ from .widgets.tabcontainer import *
 # from .widgets.table import *
 from .widgets.textinput import *
 # from .widgets.tree import *
-# from .widgets.webview import *
+from .widgets.webview import *
 
 __all__ = [
     '__version__',
@@ -47,7 +47,7 @@ __all__ = [
     # 'Table',
     'TextInput',
     # 'Tree',
-    # 'WebView',
+    'WebView',
 ]
 
 # Examples of valid version strings
