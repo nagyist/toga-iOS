@@ -1,8 +1,12 @@
-from __future__ import print_function, absolute_import, division, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals,
+)
+
+import traceback
 
 from rubicon.objc import objc_method
 
-from .libs import *
+from .libs import UIColor, UIResponder
 from .window import Window
 
 
@@ -18,10 +22,14 @@ class PythonAppDelegate(UIResponder):
         print("BECAME ACTIVE")
 
     @objc_method('B@@')
-    def application_didFinishLaunchingWithOptions_(self, application, launchOptions):
+    def application_didFinishLaunchingWithOptions_(
+            self, application, launchOptions):
+        try:
+            MobileApp._app._startup()
+        except Exception:
+            print(traceback.format_exc())
+            return False
         print("FINISHED LAUNCHING")
-        MobileApp._app._startup()
-
         return True
 
 
